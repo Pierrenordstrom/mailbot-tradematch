@@ -223,6 +223,12 @@ function skicka_(k, {rad, steg}, inst) {
       rad.set('Message-ID', res.messageIdHeader);
       rad.set('Status', STATUS.SKICKAT);
     } else {
+      // Sista koll precis före uppföljningen, så att ingen får en påminnelse efter att ha svarat.
+      const svar = hittaSvar_(rad, Session.getActiveUser().getEmail().toLowerCase());
+      if (svar) {
+        registreraSvar_(rad, svar);
+        return;
+      }
       const m = rendera_(mallar, rad, inst, steg);
       skickaGmail_({
         till: rad.get('E-post'), amne: 'Re: ' + m.amne, text: m.text, html: m.html, inst,
@@ -376,28 +382,10 @@ function kollaSvar() {
       if (r.get('Status') === STATUS.STUDS) studsar++;
       if (!KOLLA_SVAR.includes(r.get('Status')) || !r.get('Tråd-ID')) continue;
 
-      let trad;
-      try {
-        trad = Gmail.Users.Threads.get('me', r.get('Tråd-ID'), {format: 'metadata', metadataHeaders: ['From', 'Subject', 'Auto-Submitted']});
-      } catch (e) { continue; }
-
-      for (const m of trad.messages || []) {
-        const h = namn => ((m.payload.headers || []).find(x => x.name.toLowerCase() === namn) || {}).value || '';
-        const fran = h('from').toLowerCase();
-        if (fran.includes(jag)) continue;
-        if (STUDS_FRAN_REGEX.test(fran)) {
-          r.set('Status', STATUS.STUDS); studsar++;
-          logg_(r.get('ID'), 'Studs', fran);
-          break;
-        }
-        const auto = /auto-(replied|generated)/i.test(h('auto-submitted')) || AUTOSVAR_REGEX.test(h('subject'));
-        if (auto) continue; // autosvar räknas inte som svar
-        const nej = NEJ_REGEX.test(m.snippet || '');
-        r.set('Status', nej ? STATUS.NEJ : STATUS.SVARAT);
-        r.set('Svarat', new Date(Number(m.internalDate)));
-        logg_(r.get('ID'), nej ? 'Nej tack' : 'Svar', (m.snippet || '').slice(0, 200));
-        break;
-      }
+      const svar = hittaSvar_(r, jag);
+      if (!svar) continue;
+      if (svar.typ === 'studs') studsar++;
+      registreraSvar_(r, svar);
     }
 
     const inst = inst_();
@@ -411,6 +399,52 @@ function kollaSvar() {
   } finally {
     lock.releaseLock();
   }
+}
+
+const FRIMAIL_REGEX = /@(gmail|hotmail|outlook|live|yahoo|telia|icloud|me|msn|bredband|spray|swipnet|home)\./i;
+
+/**
+ * Letar efter svar från mottagaren: först i kampanjtråden, sedan (för
+ * företagsdomäner) i nya trådar från samma domän efter mail 1, t.ex. när
+ * en kollega svarar från en annan adress. Returnerar null om inget finns.
+ */
+function hittaSvar_(r, jag) {
+  const tolka = m => {
+    const h = namn => ((m.payload.headers || []).find(x => x.name.toLowerCase() === namn) || {}).value || '';
+    const fran = h('from').toLowerCase();
+    if (fran.includes(jag)) return null;
+    if (STUDS_FRAN_REGEX.test(fran)) return {typ: 'studs', fran, snippet: m.snippet || '', datum: new Date(Number(m.internalDate))};
+    if (/auto-(replied|generated)/i.test(h('auto-submitted')) || AUTOSVAR_REGEX.test(h('subject'))) return null; // autosvar räknas inte
+    return {typ: NEJ_REGEX.test(m.snippet || '') ? 'nej' : 'svar', fran, snippet: m.snippet || '', datum: new Date(Number(m.internalDate))};
+  };
+  const meta = {format: 'metadata', metadataHeaders: ['From', 'Subject', 'Auto-Submitted']};
+
+  try {
+    const trad = Gmail.Users.Threads.get('me', r.get('Tråd-ID'), meta);
+    for (const m of trad.messages || []) {
+      const t = tolka(m);
+      if (t) return t;
+    }
+  } catch (e) { /* tråden raderad – fortsätt med domänsökning */ }
+
+  const epost = String(r.get('E-post'));
+  if (!FRIMAIL_REGEX.test(epost) && r.get('Mail 1 skickat')) {
+    const efter = Utilities.formatDate(new Date(r.get('Mail 1 skickat')), 'Europe/Stockholm', 'yyyy/MM/dd');
+    const lista = Gmail.Users.Messages.list('me', {q: 'from:' + epost.split('@')[1] + ' after:' + efter, maxResults: 5});
+    for (const ref of lista.messages || []) {
+      if (ref.threadId === r.get('Tråd-ID')) continue;
+      const t = tolka(Gmail.Users.Messages.get('me', ref.id, meta));
+      if (t && t.typ !== 'studs') return t;
+    }
+  }
+  return null;
+}
+
+function registreraSvar_(r, svar) {
+  const status = {studs: STATUS.STUDS, nej: STATUS.NEJ, svar: STATUS.SVARAT}[svar.typ];
+  r.set('Status', status);
+  if (svar.typ !== 'studs') r.set('Svarat', svar.datum);
+  logg_(r.get('ID'), status, (svar.typ === 'studs' ? svar.fran : svar.snippet).slice(0, 200));
 }
 
 /** Spårningspixeln. Driftsätts som webbapp (Kör som: jag, Åtkomst: alla). */
@@ -477,13 +511,12 @@ function dagligRapport() {
 
 /** Sätter "Hoppa över" på bolag du redan mailat med, så de inte får ett kallmail. */
 function markeraBefintligaKontakter_() {
-  const fri = /@(gmail|hotmail|outlook|live|yahoo|telia|icloud|me|bredband|spray|home)\./i;
   const k = kampanj_();
   let antal = 0;
   for (const r of k.rader) {
     if (r.get('Status') !== STATUS.VANTAR) continue;
     const epost = String(r.get('E-post'));
-    const mal = fri.test(epost) ? epost : epost.split('@')[1];
+    const mal = FRIMAIL_REGEX.test(epost) ? epost : epost.split('@')[1];
     const q = '{from:' + mal + ' to:' + mal + '}';
     const svar = Gmail.Users.Threads.list('me', {q: q, maxResults: 1});
     if (svar.threads && svar.threads.length) {
