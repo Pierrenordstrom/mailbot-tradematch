@@ -274,13 +274,51 @@ skickat / öppnat / klickat / svarat / bokat, per dag och per segment
 | Motor | Google Apps Script i Pierres konto |
 | Omfattning | Alla 437, ★ först |
 | Start | tisdag 2026-10-06 |
-| Tak | 40 nya mail/dag (upptrappning 15 → 40 första veckorna) |
+| Tak | Start 20 nya mail/dag, ökar stegvis till max 40 |
 | Öppningsspårning | Bara i mail 1 |
 | Uppföljning 2 (dag 12) | Ja |
 | Signatur | Textsignatur, ingen inskannad namnteckning |
 | Bokningslänk | Ingen, kunden svarar med tid / rätt person |
 | Möte | 20 min, Teams / Google Meet |
-| Referenskunder | Får nämnas: Moderna Bil, HRM Motor, BD Bil |
+| Referenskunder | HRM Motor, Moderna Bil, Motorhuset |
 | Fördelar | Mobilanpassat · Allt i ett system · Verkstad- och logistiksystem kopplat till försäljningen |
 | Rapporter och het-lista | pierre@tradematch.com |
-| Öppet | Anpassad verkstadsrad |
+| Hälsning | Alltid "Hejsan," (många adresser är info@; bara 7 av 437 adresser matchar VD:ns namn) |
+| Öppningsrad | ≥5 bilar på Blocket: "Hittade er på Blocket och gillar verkligen ert lager!" · annars (133 bolag): "Hittade er när jag kollade på begagnathandlare i {ort} och gillar verkligen det ni gör!" |
+
+### Slutlig text – mail 1
+
+**Ämne:** Fråga om {bolag}
+
+> Hejsan,
+>
+> {öppning}
+>
+> Vet inte om det här är rätt väg, men ni kanske kan hjälpa mig komma i kontakt med rätt person.
+>
+> Jag är en av grundarna till TradeMatch, som inte bara hanterar det självklara i ett affärssystem, som avtal, kunder och lager, utan alla processer i verksamheten. Ni ser var alla era fordon befinner sig, vad som behöver åtgärdas innan försäljning och får ner era ledtider. {verkstadsrad}
+>
+> Flera stora handlare, bland annat HRM Motor, Moderna Bil och Motorhuset, använder redan TradeMatch.
+>
+> Vem är rätt person att visa detta för hos er i ett kort möte på 20 min?
+
+**{verkstadsrad}** (endast de 106 bolagen med stark verkstadsindikation):
+"Med vår verkstadsmodul får ni in all verkstadshantering på era interna fordon, och allt kopplas till ett och samma bokföringssystem."
+
+### Uppföljning dag 5 (samma tråd)
+
+> Hej igen,
+>
+> Ville bara lyfta det här ifall det försvann i inkorgen. Vem hos er är rätt person att prata med, eller passar det med en kort genomgång tisdag eller torsdag förmiddag?
+>
+> /Pierre
+
+### Uppföljning dag 12 (samma tråd)
+
+> Hejsan,
+>
+> Jag har hört av mig innan om TradeMatch men inte fått något svar, så jag antar att det inte är rätt läge just nu.
+>
+> Ska jag stänga ärendet, eller är det bättre att jag hör av mig igen om några månader?
+>
+> /Pierre
