@@ -15,7 +15,7 @@ import pandas as pd
 
 KOLUMNER = [
     "ID", "Grupp", "Bolag", "Ort", "Län", "Bilar på Blocket", "Verkstad", "E-post",
-    "Telefon", "VD", "Orgnr", "Hemsida", "Status", "Mail 1 skickat", "Uppföljning 1 skickat",
+    "Telefon", "VD", "Status", "Mail 1 skickat", "Uppföljning 1 skickat",
     "Uppföljning 2 skickat", "Öppningar", "Första öppning", "Senaste öppning",
     "Svarat", "Anteckning", "Tråd-ID", "Message-ID",
 ]
@@ -75,10 +75,8 @@ def main(src: str, outdir: str = "data") -> None:
                 r["epost"],
                 tel,
                 r["VD"] if isinstance(r["VD"], str) else "",
-                r["Orgnr"],
-                r["Hemsida"] if isinstance(r["Hemsida"], str) else "",
                 "Väntar",
-            ] + [""] * (len(KOLUMNER) - 13))
+            ])  # övriga kolumner fylls av skriptet
 
     with open(out / "ringlista.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)

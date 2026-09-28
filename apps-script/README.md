@@ -4,9 +4,20 @@ Mailboten är ett Google Apps Script som sitter i kampanjarket och skickar från
 din egen Gmail. Den skickar i jämn takt inom tidsfönstren, följer upp i samma
 tråd, stoppar vid svar och studsar, och mailar dig en het-lista kl 07 varje morgon.
 
+## 0. Skapa kampanjarket
+
+1. Gå till [sheets.new](https://sheets.new) och döp arket till
+   **TradeMatch mailbot – kampanj**.
+2. **Arkiv → Importera → Ladda upp** och välj `kampanj.csv`.
+3. Välj **Ersätt aktuellt blad**, avgränsare **Komma**, och bocka ur
+   **Konvertera text till siffror, datum och formler**. Klicka **Importera data**.
+
+(`ringlista.csv` kan importeras på samma sätt som ett eget ark för de bolag
+som saknar e-post.)
+
 ## 1. Lägg in skriptet
 
-1. Öppna kampanjarket **TradeMatch mailbot – kampanj** i Google Drive.
+1. Öppna kampanjarket.
 2. **Tillägg → Apps Script**.
 3. Radera allt i `Code.gs` och klistra in innehållet från [`Code.gs`](Code.gs).
 4. Klicka på kugghjulet **Projektinställningar** och bocka i
